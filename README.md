@@ -1,135 +1,117 @@
-# Turborepo starter
+# Horizon - Fullstack Monorepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+A fullstack monorepo built with Turborepo, React Native Expo, NestJS, and SQLite.
 
-## Using this example
+## Features
 
-Run the following command:
+- **Real-time messaging** with Socket.io
+- **Direct and group conversations**
+- **Message persistence** with Prisma ORM
+- **Cross-platform mobile app** with Expo
+- **RESTful API** with NestJS
 
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## Project Structure
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+horizon/
+├── apps/
+│   ├── api/          # NestJS backend API
+│   └── mobile/       # React Native Expo app
+├── packages/
+│   ├── shared/       # Shared types and utilities
+│   ├── eslint-config/# ESLint configurations
+│   └── typescript-config/ # TypeScript configurations
+└── turbo.json        # Turborepo configuration
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## Prerequisites
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+- Node.js >= 18
+- pnpm >= 9.0.0
+- PostgreSQL database
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## Getting Started
 
-### Develop
+### 1. Install dependencies
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+pnpm install
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 2. Set up the database
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+Copy the environment file in the API app:
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+cp apps/api/.env.example apps/api/.env
 ```
 
-### Remote Caching
+Update the `DATABASE_URL` in `apps/api/.env` with your PostgreSQL connection string.
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+### 3. Generate Prisma client and run migrations
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```bash
+cd apps/api
+pnpm prisma:generate
+pnpm prisma:migrate
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+### 4. Run the development servers
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+From the root directory:
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```bash
+pnpm dev
 ```
 
-## Useful Links
+This will start:
 
-Learn more about the power of Turborepo:
+- **API** at http://localhost:3000
+- **Mobile** Expo dev server
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## Available Scripts
+
+| Command            | Description                        |
+| ------------------ | ---------------------------------- |
+| `pnpm dev`         | Start all apps in development mode |
+| `pnpm build`       | Build all apps and packages        |
+| `pnpm lint`        | Lint all apps and packages         |
+| `pnpm check-types` | Type check all apps and packages   |
+
+### API Scripts
+
+| Command                | Description             |
+| ---------------------- | ----------------------- |
+| `pnpm prisma:generate` | Generate Prisma client  |
+| `pnpm prisma:migrate`  | Run database migrations |
+| `pnpm prisma:studio`   | Open Prisma Studio      |
+
+## API Endpoints
+
+### Conversations
+
+- `GET /conversations` - Get user's conversations
+- `POST /conversations` - Create new conversation
+- `GET /conversations/:id` - Get conversation details
+- `GET /conversations/:id/messages` - Get conversation messages
+- `POST /conversations/:id/messages` - Send message
+
+### Socket Events
+
+- `join_conversation` - Join a conversation room
+- `leave_conversation` - Leave a conversation room
+- `send_message` - Send a message
+- `message_received` - Receive new messages
+- `typing_start` / `typing_stop` - Typing indicators
+
+## Tech Stack
+
+- **Monorepo**: Turborepo
+- **Mobile**: React Native + Expo + Socket.io Client
+- **Backend**: NestJS + Socket.io + Prisma ORM
+- **Database**: SQLite (development) / PostgreSQL (production)
+- **Package Manager**: pnpm
+
+## License
+
+Private
