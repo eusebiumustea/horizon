@@ -1,68 +1,74 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateMessageDto, CreateConversationDto } from '@repo/shared';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import {
+  User,
+  Conversation,
+  ConversationParticipant,
+  Message,
+} from './entities';
+import {
+  CreateMessageDto,
+  CreateConversationDto,
+  ApiError,
+  ErrorCode,
+} from '@repo/shared';
 
 @Injectable()
 export class MessagesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(Conversation)
+    private conversationRepository: Repository<Conversation>,
+    @InjectRepository(ConversationParticipant)
+    private participantRepository: Repository<ConversationParticipant>,
+    @InjectRepository(Message)
+    private messageRepository: Repository<Message>,
+  ) {}
 
   async createConversation(data: CreateConversationDto, creatorId: string) {
     // Create conversation
-    const conversation = await this.prisma.conversation.create({
-      data: {
-        type: data.type,
-        name: data.name,
-        participants: {
-          create: [
-            // Add creator
-            { userId: creatorId, role: 'admin' },
-            // Add other participants
-            ...data.participantIds.map((userId) => ({
-              userId,
-              role: 'member' as const,
-            })),
-          ],
-        },
-      },
-      include: {
-        participants: {
-          include: {
-            user: true,
-          },
-        },
-      },
+    const conversation = this.conversationRepository.create({
+      type: data.type,
+      name: data.name,
     });
+    await this.conversationRepository.save(conversation);
 
-    return conversation;
+    // Add participants
+    const participants = [
+      this.participantRepository.create({
+        conversationId: conversation.id,
+        userId: creatorId,
+        role: 'admin',
+      }),
+      ...data.participantIds.map((userId) =>
+        this.participantRepository.create({
+          conversationId: conversation.id,
+          userId,
+          role: 'member',
+        }),
+      ),
+    ];
+    await this.participantRepository.save(participants);
+
+    // Return conversation with participants
+    return this.conversationRepository.findOne({
+      where: { id: conversation.id },
+      relations: ['participants', 'participants.user'],
+    });
   }
 
   async getUserConversations(userId: string) {
-    return this.prisma.conversation.findMany({
+    return this.conversationRepository.find({
       where: {
         participants: {
-          some: {
-            userId,
-          },
+          userId,
         },
       },
-      include: {
-        participants: {
-          include: {
-            user: true,
-          },
-        },
-        messages: {
-          take: 1,
-          orderBy: {
-            sentAt: 'desc',
-          },
-          include: {
-            sender: true,
-          },
-        },
-      },
-      orderBy: {
-        updatedAt: 'desc',
+      relations: ['participants', 'participants.user', 'messages'],
+      order: {
+        updatedAt: 'DESC',
       },
     });
   }
@@ -74,7 +80,7 @@ export class MessagesService {
     take = 50,
   ) {
     // Check if user is participant
-    const participant = await this.prisma.conversationParticipant.findFirst({
+    const participant = await this.participantRepository.findOne({
       where: {
         conversationId,
         userId,
@@ -82,19 +88,20 @@ export class MessagesService {
     });
 
     if (!participant) {
-      throw new Error('Unauthorized');
+      throw new ApiError(
+        ErrorCode.FORBIDDEN,
+        'User is not authorized to access this conversation',
+      );
     }
 
-    return this.prisma.message.findMany({
+    return this.messageRepository.find({
       where: {
         conversationId,
         isDeleted: false,
       },
-      include: {
-        sender: true,
-      },
-      orderBy: {
-        sentAt: 'desc',
+      relations: ['sender'],
+      order: {
+        sentAt: 'DESC',
       },
       skip,
       take,
@@ -103,7 +110,7 @@ export class MessagesService {
 
   async createMessage(data: CreateMessageDto, senderId: string) {
     // Check if user is participant
-    const participant = await this.prisma.conversationParticipant.findFirst({
+    const participant = await this.participantRepository.findOne({
       where: {
         conversationId: data.conversationId,
         userId: senderId,
@@ -111,32 +118,34 @@ export class MessagesService {
     });
 
     if (!participant) {
-      throw new Error('Unauthorized');
+      throw new ApiError(
+        ErrorCode.FORBIDDEN,
+        'User is not authorized to send messages in this conversation',
+      );
     }
 
-    const message = await this.prisma.message.create({
-      data: {
-        conversationId: data.conversationId,
-        senderId,
-        content: data.content,
-        messageType: data.messageType || 'text',
-      },
-      include: {
-        sender: true,
-      },
+    const message = this.messageRepository.create({
+      conversationId: data.conversationId,
+      senderId,
+      content: data.content,
+      messageType: data.messageType || 'text',
     });
+    await this.messageRepository.save(message);
 
     // Update conversation timestamp
-    await this.prisma.conversation.update({
-      where: { id: data.conversationId },
-      data: { updatedAt: new Date() },
-    });
+    await this.conversationRepository.update(
+      { id: data.conversationId },
+      { updatedAt: new Date() },
+    );
 
-    return message;
+    return this.messageRepository.findOne({
+      where: { id: message.id },
+      relations: ['sender'],
+    });
   }
 
   async deleteMessage(messageId: string, userId: string) {
-    const message = await this.prisma.message.findFirst({
+    const message = await this.messageRepository.findOne({
       where: {
         id: messageId,
         senderId: userId,
@@ -144,38 +153,30 @@ export class MessagesService {
     });
 
     if (!message) {
-      throw new Error('Message not found or unauthorized');
+      throw new ApiError(
+        ErrorCode.NOT_FOUND,
+        'Message not found or user is not authorized to delete it',
+      );
     }
 
-    await this.prisma.message.update({
-      where: { id: messageId },
-      data: { isDeleted: true },
-    });
+    await this.messageRepository.update({ id: messageId }, { isDeleted: true });
 
     return { success: true };
   }
 
   async getConversationById(conversationId: string, userId: string) {
-    const conversation = await this.prisma.conversation.findFirst({
+    const conversation = await this.conversationRepository.findOne({
       where: {
         id: conversationId,
         participants: {
-          some: {
-            userId,
-          },
+          userId,
         },
       },
-      include: {
-        participants: {
-          include: {
-            user: true,
-          },
-        },
-      },
+      relations: ['participants', 'participants.user'],
     });
 
     if (!conversation) {
-      throw new Error('Conversation not found');
+      throw new ApiError(ErrorCode.NOT_FOUND, 'Conversation not found');
     }
 
     return conversation;

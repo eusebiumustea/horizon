@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { MessagesService } from '../messages/messages.service';
 import { CreateMessageDto, SOCKET_EVENTS } from '@repo/shared';
 
 @Injectable()
@@ -26,7 +26,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatGateway.name);
   private connectedUsers = new Map<string, string>(); // userId -> socketId
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private messagesService: MessagesService) {}
 
   async handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -84,23 +84,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       // Create message in database
-      const message = await this.prisma.message.create({
-        data: {
-          conversationId: data.conversationId,
-          senderId: userId,
-          content: data.content,
-          messageType: data.messageType || 'text',
-        },
-        include: {
-          sender: true,
-        },
-      });
-
-      // Update conversation's updatedAt
-      await this.prisma.conversation.update({
-        where: { id: data.conversationId },
-        data: { updatedAt: new Date() },
-      });
+      const message = await this.messagesService.createMessage(data, userId);
 
       // Emit to all participants in the conversation
       this.server

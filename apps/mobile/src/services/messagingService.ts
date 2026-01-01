@@ -4,45 +4,32 @@ import {
   Message,
   CreateConversationDto,
   CreateMessageDto,
+  defaultHttpClient,
+  HttpClient,
 } from "@repo/shared";
 
-const API_BASE_URL = "http://localhost:3000";
-
 class MessagingService {
-  private async request<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-      ...options,
-    });
+  private httpClient: HttpClient;
 
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
-    }
-
-    return response.json();
+  constructor(httpClient: HttpClient = defaultHttpClient) {
+    this.httpClient = httpClient;
   }
 
   async getConversations(): Promise<Conversation[]> {
-    return this.request<Conversation[]>(API_ENDPOINTS.CONVERSATIONS);
+    return this.httpClient.get<Conversation[]>(API_ENDPOINTS.CONVERSATIONS);
   }
 
   async getConversation(conversationId: string): Promise<Conversation> {
-    return this.request<Conversation>(
+    return this.httpClient.get<Conversation>(
       `${API_ENDPOINTS.CONVERSATIONS}/${conversationId}`
     );
   }
 
   async createConversation(data: CreateConversationDto): Promise<Conversation> {
-    return this.request<Conversation>(API_ENDPOINTS.CONVERSATIONS, {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return this.httpClient.post<Conversation>(
+      API_ENDPOINTS.CONVERSATIONS,
+      data
+    );
   }
 
   async getConversationMessages(
@@ -50,12 +37,9 @@ class MessagingService {
     skip = 0,
     take = 50
   ): Promise<Message[]> {
-    const params = new URLSearchParams({
-      skip: skip.toString(),
-      take: take.toString(),
-    });
-    return this.request<Message[]>(
-      `${API_ENDPOINTS.CONVERSATIONS}/${conversationId}/messages?${params}`
+    return this.httpClient.get<Message[]>(
+      `${API_ENDPOINTS.CONVERSATIONS}/${conversationId}/messages`,
+      { params: { skip, take } }
     );
   }
 
@@ -63,12 +47,15 @@ class MessagingService {
     conversationId: string,
     data: CreateMessageDto
   ): Promise<Message> {
-    return this.request<Message>(
+    return this.httpClient.post<Message>(
       `${API_ENDPOINTS.CONVERSATIONS}/${conversationId}/messages`,
-      {
-        method: "POST",
-        body: JSON.stringify(data),
-      }
+      data
+    );
+  }
+
+  async deleteMessage(messageId: string): Promise<{ success: boolean }> {
+    return this.httpClient.delete<{ success: boolean }>(
+      `${API_ENDPOINTS.CONVERSATIONS}/messages/${messageId}`
     );
   }
 }

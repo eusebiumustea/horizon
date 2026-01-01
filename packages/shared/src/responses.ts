@@ -1,6 +1,27 @@
 import { ErrorCode } from "./error-codes";
 import { HttpStatus } from "./http-status";
 
+export { ErrorCode };
+
+export class ApiError extends Error {
+  constructor(
+    public readonly code: ErrorCode,
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+export function createApiError(
+  code: ErrorCode,
+  message: string,
+  details?: Record<string, unknown>
+): ApiError {
+  return new ApiError(code, message, details);
+}
+
 export interface ResponseMeta {
   timestamp?: string;
   requestId?: string;

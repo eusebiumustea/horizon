@@ -30,12 +30,37 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
 # local env files
 .env*.local
 
 # typescript
 *.tsbuildinfo
+.turbo/
 
 # generated native folders
 /ios
 /android
+
+# Build outputs
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# React Native
+react-native.config.js
