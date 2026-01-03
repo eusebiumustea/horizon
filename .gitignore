@@ -7,12 +7,18 @@ apps/*/node_modules/
 packages/*/node_modules/
 .pnp
 .pnp.js
+.pnp.cjs
+.pnp.loader.mjs
 
-# pnpm
-.pnpm/
-.pnpm-store/
+# Yarn
+.yarn/
+.yarnrc.yml
+
+# pnpm (legacy - can be removed if not switching back)
+# .pnpm/
+# .pnpm-store/
 .store/
-.vstore/
+# .vstore/
 
 # Local env files
 .env
@@ -147,3 +153,4 @@ apps/mobile/ios/Pods/
 *.p12
 *.jks
 *.mobileprovision
+.yarn/releases/yarn-4.12.0.cjs

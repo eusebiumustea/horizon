@@ -27,7 +27,7 @@ horizon/
 ## Prerequisites
 
 - Node.js >= 18
-- pnpm >= 9.0.0
+- Yarn >= 4.0.0
 - PostgreSQL database
 
 ## Getting Started
@@ -35,7 +35,7 @@ horizon/
 ### 1. Install dependencies
 
 ```bash
-pnpm install
+yarn install
 ```
 
 ### 2. Set up the database
@@ -52,8 +52,8 @@ Update the `DATABASE_URL` in `apps/api/.env` with your PostgreSQL connection str
 
 ```bash
 cd apps/api
-pnpm prisma:generate
-pnpm prisma:migrate
+yarn prisma:generate
+yarn prisma:migrate
 ```
 
 ### 4. Run the development servers
@@ -61,7 +61,7 @@ pnpm prisma:migrate
 From the root directory:
 
 ```bash
-pnpm dev
+yarn dev
 ```
 
 This will start:
@@ -73,18 +73,18 @@ This will start:
 
 | Command            | Description                        |
 | ------------------ | ---------------------------------- |
-| `pnpm dev`         | Start all apps in development mode |
-| `pnpm build`       | Build all apps and packages        |
-| `pnpm lint`        | Lint all apps and packages         |
-| `pnpm check-types` | Type check all apps and packages   |
+| `yarn dev`         | Start all apps in development mode |
+| `yarn build`       | Build all apps and packages        |
+| `yarn lint`        | Lint all apps and packages         |
+| `yarn check-types` | Type check all apps and packages   |
 
 ### API Scripts
 
 | Command                | Description             |
 | ---------------------- | ----------------------- |
-| `pnpm prisma:generate` | Generate Prisma client  |
-| `pnpm prisma:migrate`  | Run database migrations |
-| `pnpm prisma:studio`   | Open Prisma Studio      |
+| `yarn prisma:generate` | Generate Prisma client  |
+| `yarn prisma:migrate`  | Run database migrations |
+| `yarn prisma:studio`   | Open Prisma Studio      |
 
 ## API Endpoints
 
@@ -108,9 +108,9 @@ This will start:
 
 - **Monorepo**: Turborepo
 - **Mobile**: React Native + Expo + Socket.io Client
-- **Backend**: NestJS + Socket.io + Prisma ORM
-- **Database**: SQLite (development) / PostgreSQL (production)
-- **Package Manager**: pnpm
+- **Backend**: NestJS + Socket.io + TypeORM
+- **Database**: PostgreSQL
+- **Package Manager**: Yarn 4 (Berry)
 
 ## License
 
