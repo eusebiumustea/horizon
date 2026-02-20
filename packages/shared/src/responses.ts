@@ -7,7 +7,7 @@ export class ApiError extends Error {
   constructor(
     public readonly code: ErrorCode,
     message: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = "ApiError";
@@ -17,7 +17,7 @@ export class ApiError extends Error {
 export function createApiError(
   code: ErrorCode,
   message: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ApiError {
   return new ApiError(code, message, details);
 }
@@ -61,7 +61,7 @@ export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
 
 export function createSuccessResponse<T>(
   data: T,
-  options?: { message?: string; meta?: ResponseMeta }
+  options?: { message?: string; meta?: ResponseMeta },
 ): SuccessResponse<T> {
   return {
     success: true,
@@ -74,7 +74,7 @@ export function createSuccessResponse<T>(
 export function createErrorResponse(
   code: ErrorCode,
   message: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ErrorResponse {
   return {
     success: false,
@@ -89,7 +89,7 @@ export function createErrorResponse(
 export function createPaginatedResponse<T>(
   data: T[],
   pagination: { total: number; page: number; limit: number },
-  options?: { message?: string; meta?: ResponseMeta }
+  options?: { message?: string; meta?: ResponseMeta },
 ): PaginatedResponse<T> {
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
@@ -108,13 +108,13 @@ export function createPaginatedResponse<T>(
 }
 
 export function isSuccessResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is SuccessResponse<T> {
   return response.success === true;
 }
 
 export function isErrorResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is ErrorResponse {
   return response.success === false;
 }

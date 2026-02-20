@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-} from "react-native";
-import { RouteProp } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { Message } from "@repo/shared";
-import { useSocket } from "../contexts/SocketContext";
-import { messagingService } from "../services/messagingService";
+} from 'react-native';
+import { RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { Message } from '@repo/shared';
+import { useSocket } from '../contexts/SocketContext';
+import { messagingService } from '../services/messagingService';
 
 type RootStackParamList = {
   Conversations: undefined;
@@ -22,21 +22,18 @@ type RootStackParamList = {
   NewConversation: undefined;
 };
 
-type ChatScreenRouteProp = RouteProp<RootStackParamList, "Chat">;
-type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, "Chat">;
+type ChatScreenRouteProp = RouteProp<RootStackParamList, 'Chat'>;
+type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
 
 interface ChatScreenProps {
   route: ChatScreenRouteProp;
   navigation: ChatScreenNavigationProp;
 }
 
-export const ChatScreen: React.FC<ChatScreenProps> = ({
-  route,
-  navigation,
-}) => {
+export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   const { conversationId } = route.params;
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList>(null);
@@ -75,8 +72,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       const data =
         await messagingService.getConversationMessages(conversationId);
       setMessages(data.reverse()); // Reverse to show newest at bottom
-    } catch (error) {
-      Alert.alert("Error", "Failed to load messages");
+    } catch {
+      Alert.alert('Error', 'Failed to load messages');
     } finally {
       setLoading(false);
     }
@@ -85,7 +82,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const handleSendMessage = () => {
     if (newMessage.trim()) {
       sendMessage(conversationId, newMessage.trim());
-      setNewMessage("");
+      setNewMessage('');
       stopTyping(conversationId);
     }
   };
@@ -108,15 +105,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     <View
       style={[
         styles.messageContainer,
-        item.senderId === "user-1" ? styles.myMessage : styles.theirMessage,
+        item.senderId === 'user-1' ? styles.myMessage : styles.theirMessage,
       ]}
     >
       <Text style={styles.senderName}>{item.sender.name}</Text>
       <Text style={styles.messageText}>{item.content}</Text>
       <Text style={styles.timestamp}>
         {new Date(item.sentAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
+          hour: '2-digit',
+          minute: '2-digit',
         })}
       </Text>
     </View>
@@ -133,7 +130,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <FlatList
         ref={flatListRef}
@@ -188,58 +185,58 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   center: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   messagesList: {
     flex: 1,
     padding: 16,
   },
   messageContainer: {
-    maxWidth: "80%",
+    maxWidth: '80%',
     padding: 12,
     borderRadius: 16,
     marginBottom: 8,
   },
   myMessage: {
-    alignSelf: "flex-end",
-    backgroundColor: "#007AFF",
+    alignSelf: 'flex-end',
+    backgroundColor: '#007AFF',
   },
   theirMessage: {
-    alignSelf: "flex-start",
-    backgroundColor: "#E5E5EA",
+    alignSelf: 'flex-start',
+    backgroundColor: '#E5E5EA',
   },
   senderName: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 4,
-    color: "#666",
+    color: '#666',
   },
   messageText: {
     fontSize: 16,
-    color: "#000",
+    color: '#000',
   },
   timestamp: {
     fontSize: 10,
-    color: "#666",
+    color: '#666',
     marginTop: 4,
-    alignSelf: "flex-end",
+    alignSelf: 'flex-end',
   },
   inputContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    borderTopColor: '#e0e0e0',
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -247,20 +244,20 @@ const styles = StyleSheet.create({
     maxHeight: 100,
   },
   sendButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: '#ccc',
   },
   sendButtonText: {
-    color: "#fff",
-    fontWeight: "600",
+    color: '#fff',
+    fontWeight: '600',
   },
   sendButtonTextDisabled: {
-    color: "#999",
+    color: '#999',
   },
 });

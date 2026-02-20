@@ -57,6 +57,6 @@ export interface MessageEvent {
     | "user_joined"
     | "user_left";
   conversationId: string;
-  data: any;
+  data: unknown;
   timestamp: Date;
 }

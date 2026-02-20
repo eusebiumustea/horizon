@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
+import { ConversationParticipant } from './conversation-participant.entity';
 
 @Entity()
 export class User {
@@ -27,6 +28,9 @@ export class User {
   @OneToMany('Message', (message: any) => message.sender)
   sentMessages: any[];
 
-  @OneToMany('ConversationParticipant', (participant: any) => participant.user)
-  conversations: any[];
+  @OneToMany(
+    'ConversationParticipant',
+    (participant: any) => participant.user,
+  )
+  conversations: ConversationParticipant[];
 }

@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
+import { ConversationParticipant } from './conversation-participant.entity';
 
 @Entity()
 export class Conversation {
@@ -25,10 +26,10 @@ export class Conversation {
   updatedAt: Date;
 
   @OneToMany(
-    'ConversationParticipant',
-    (participant: any) => participant.conversation,
+    () => ConversationParticipant,
+    (participant: ConversationParticipant) => participant.conversation,
   )
-  participants: any[];
+  participants: ConversationParticipant[];
 
   @OneToMany('Message', (message: any) => message.conversation)
   messages: any[];

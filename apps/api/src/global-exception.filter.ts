@@ -45,7 +45,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         typeof exceptionResponse === 'object' &&
         exceptionResponse !== null
       ) {
-        const responseObj = exceptionResponse as any;
+        const responseObj = exceptionResponse as Record<string, string>;
         message = responseObj.message || responseObj.error || 'HTTP exception';
       }
 

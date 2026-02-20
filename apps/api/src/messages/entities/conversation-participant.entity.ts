@@ -6,6 +6,8 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { Conversation } from './conversation.entity';
+import { User } from './user.entity';
 
 @Entity()
 export class ConversationParticipant {
@@ -24,13 +26,15 @@ export class ConversationParticipant {
   @Column({ default: 'member' })
   role: string;
 
-  @ManyToOne('Conversation', (conversation: any) => conversation.participants, {
+  @ManyToOne(() => Conversation, (conversation) => conversation.participants, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'conversationId' })
-  conversation: any;
+  conversation: Conversation;
 
-  @ManyToOne('User', (user: any) => user.conversations, { onDelete: 'CASCADE' })
+  @ManyToOne('User', (user: User) => user.conversations, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userId' })
-  user: any;
+  user: User;
 }

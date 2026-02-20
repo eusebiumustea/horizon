@@ -27,7 +27,53 @@ export class MessagesService {
     private messageRepository: Repository<Message>,
   ) {}
 
+  async createUser(username: string) {
+    // Check if user exists
+    let user = await this.userRepository.findOne({ where: { name: username } });
+    if (user) {
+      return user;
+    }
+
+    // Create new user
+    user = this.userRepository.create({
+      email: `${username}@example.com`,
+      name: username,
+    });
+    await this.userRepository.save(user);
+    return user;
+  }
+
+  async getUsers() {
+    return this.userRepository.find({
+      select: ['id', 'name', 'email'],
+    });
+  }
+
   async createConversation(data: CreateConversationDto, creatorId: string) {
+    // Ensure all users exist and get their UUIDs
+
+    const allUserIds = (await this.userRepository.find({ select: ['id'] })).map(
+      (user) => user.id,
+    );
+
+    // const allUserIds = [creatorId, ...data.participantIds];
+    const uniqueUserIds = [...new Set(allUserIds)];
+    const userMap = new Map<string, string>();
+
+    for (const userId of uniqueUserIds) {
+      let user = await this.userRepository.findOne({
+        where: { email: `${userId}@example.com` },
+      });
+      if (!user) {
+        user = this.userRepository.create({
+          email: `${userId}@example.com`,
+          name: userId,
+        });
+        await this.userRepository.save(user);
+      }
+      userMap.set(userId, user.id);
+    }
+
     // Create conversation
     const conversation = this.conversationRepository.create({
       type: data.type,
@@ -39,13 +85,13 @@ export class MessagesService {
     const participants = [
       this.participantRepository.create({
         conversationId: conversation.id,
-        userId: creatorId,
+        userId: userMap.get(creatorId)!,
         role: 'admin',
       }),
       ...data.participantIds.map((userId) =>
         this.participantRepository.create({
           conversationId: conversation.id,
-          userId,
+          userId: userMap.get(userId)!,
           role: 'member',
         }),
       ),
@@ -59,18 +105,17 @@ export class MessagesService {
     });
   }
 
-  async getUserConversations(userId: string) {
-    return this.conversationRepository.find({
-      where: {
-        participants: {
-          userId,
-        },
-      },
-      relations: ['participants', 'participants.user', 'messages'],
-      order: {
-        updatedAt: 'DESC',
-      },
+  async getParticipantConversations(userId: string) {
+    const participants = await this.participantRepository.find({
+      where: { userId },
+      relations: [
+        'conversation',
+        'conversation.participants',
+        'conversation.participants.user',
+      ],
     });
+
+    return participants;
   }
 
   async getConversationMessages(
@@ -79,11 +124,19 @@ export class MessagesService {
     skip = 0,
     take = 50,
   ) {
+    // Find the user UUID
+    const user = await this.userRepository.findOne({
+      where: { email: `${userId}@example.com` },
+    });
+    if (!user) {
+      throw new ApiError(ErrorCode.NOT_FOUND, 'User not found');
+    }
+
     // Check if user is participant
     const participant = await this.participantRepository.findOne({
       where: {
         conversationId,
-        userId,
+        userId: user.id,
       },
     });
 
@@ -109,11 +162,19 @@ export class MessagesService {
   }
 
   async createMessage(data: CreateMessageDto, senderId: string) {
+    // Find the user UUID
+    const user = await this.userRepository.findOne({
+      where: { email: `${senderId}@example.com` },
+    });
+    if (!user) {
+      throw new ApiError(ErrorCode.NOT_FOUND, 'User not found');
+    }
+
     // Check if user is participant
     const participant = await this.participantRepository.findOne({
       where: {
         conversationId: data.conversationId,
-        userId: senderId,
+        userId: user.id,
       },
     });
 
@@ -126,7 +187,7 @@ export class MessagesService {
 
     const message = this.messageRepository.create({
       conversationId: data.conversationId,
-      senderId,
+      senderId: user.id,
       content: data.content,
       messageType: data.messageType || 'text',
     });
@@ -144,10 +205,15 @@ export class MessagesService {
     });
   }
 
-  async deleteMessage(messageId: string, userId: string) {
+  async deleteMessage(
+    conversationId: string,
+    messageId: string,
+    userId: string,
+  ) {
     const message = await this.messageRepository.findOne({
       where: {
         id: messageId,
+        conversationId,
         senderId: userId,
       },
     });

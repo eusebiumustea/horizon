@@ -4,9 +4,10 @@ import React, {
   useEffect,
   useRef,
   useState,
-} from "react";
-import { io, Socket } from "socket.io-client";
-import { SOCKET_EVENTS, Message, MessageEvent } from "@repo/shared";
+} from 'react';
+import { io, Socket } from 'socket.io-client';
+import { Platform } from 'react-native';
+import { SOCKET_EVENTS, Message } from '@repo/shared';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -24,7 +25,7 @@ interface SocketContextType {
       userId: string;
       conversationId: string;
       isTyping: boolean;
-    }) => void
+    }) => void,
   ) => void;
   offMessageReceived: (callback: (message: Message) => void) => void;
   offUserTyping: (
@@ -32,7 +33,7 @@ interface SocketContextType {
       userId: string;
       conversationId: string;
       isTyping: boolean;
-    }) => void
+    }) => void,
   ) => void;
 }
 
@@ -41,7 +42,7 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 export const useSocket = () => {
   const context = useContext(SocketContext);
   if (!context) {
-    throw new Error("useSocket must be used within a SocketProvider");
+    throw new Error('useSocket must be used within a SocketProvider');
   }
   return context;
 };
@@ -57,23 +58,31 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const connect = (userId: string) => {
     if (socketRef.current?.connected) return;
 
-    socketRef.current = io("http://localhost:3000/chat", {
+    // For Android emulator: 10.0.2.2; for physical Android/iOS devices: use machine IP
+    // Update YOUR_MACHINE_IP with your actual IP (run ipconfig on Windows)
+    const YOUR_MACHINE_IP = '192.168.1.106'; // Replace with your IP
+    const serverUrl =
+      Platform.OS === 'android'
+        ? `http://${YOUR_MACHINE_IP}:3000`
+        : 'http://localhost:3000';
+
+    socketRef.current = io(`${serverUrl}/chat`, {
       query: { userId },
-      transports: ["websocket"],
+      transports: ['websocket'],
     });
 
-    socketRef.current.on("connect", () => {
+    socketRef.current.on('connect', () => {
       setIsConnected(true);
-      console.log("Connected to chat server");
+      console.log('Connected to chat server');
     });
 
-    socketRef.current.on("disconnect", () => {
+    socketRef.current.on('disconnect', () => {
       setIsConnected(false);
-      console.log("Disconnected from chat server");
+      console.log('Disconnected from chat server');
     });
 
-    socketRef.current.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
+    socketRef.current.on('connect_error', (error) => {
+      console.error('Socket connection error:', JSON.stringify(error));
     });
   };
 
@@ -97,7 +106,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     socketRef.current?.emit(SOCKET_EVENTS.SEND_MESSAGE, {
       conversationId,
       content,
-      messageType: "text",
+      messageType: 'text',
     });
   };
 
@@ -118,7 +127,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       userId: string;
       conversationId: string;
       isTyping: boolean;
-    }) => void
+    }) => void,
   ) => {
     socketRef.current?.on(SOCKET_EVENTS.USER_TYPING, callback);
   };
@@ -132,19 +141,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       userId: string;
       conversationId: string;
       isTyping: boolean;
-    }) => void
+    }) => void,
   ) => {
     socketRef.current?.off(SOCKET_EVENTS.USER_TYPING, callback);
   };
-
-  useEffect(() => {
-    // Auto-connect with a demo user ID
-    connect("user-1");
-
-    return () => {
-      disconnect();
-    };
-  }, []);
 
   const value: SocketContextType = {
     socket: socketRef.current,

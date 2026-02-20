@@ -1,5 +1,4 @@
 import {
-  ApiResponse,
   ErrorCode,
   ApiError,
   isErrorResponse,
@@ -32,7 +31,7 @@ export class HttpClient {
 
   private buildURL(
     endpoint: string,
-    params?: Record<string, string | number | boolean>
+    params?: Record<string, string | number | boolean>,
   ): string {
     const url = new URL(endpoint, this.config.baseURL);
 
@@ -49,7 +48,7 @@ export class HttpClient {
 
   private async request<T>(
     endpoint: string,
-    config: RequestConfig = {}
+    config: RequestConfig = {},
   ): Promise<T> {
     const { params, body, ...fetchConfig } = config;
 
@@ -73,7 +72,7 @@ export class HttpClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(
         () => controller.abort(),
-        this.config.timeout
+        this.config.timeout,
       );
 
       const response = await fetch(url, {
@@ -91,14 +90,14 @@ export class HttpClient {
           throw new ApiError(
             data.error.code,
             data.error.message,
-            data.error.details
+            data.error.details,
           );
         }
         // Fallback for unexpected error formats
         throw new ApiError(
           ErrorCode.INTERNAL_ERROR,
           `HTTP ${response.status}: ${response.statusText}`,
-          { status: response.status, statusText: response.statusText }
+          { status: response.status, statusText: response.statusText },
         );
       }
 
@@ -124,7 +123,7 @@ export class HttpClient {
         throw new ApiError(
           ErrorCode.INTERNAL_ERROR,
           error.message || "Network request failed",
-          { originalError: error.message }
+          { originalError: error.message },
         );
       }
 
@@ -136,7 +135,7 @@ export class HttpClient {
 
   async get<T>(
     endpoint: string,
-    config?: Omit<RequestConfig, "method" | "body">
+    config?: Omit<RequestConfig, "method" | "body">,
   ): Promise<T> {
     return this.request<T>(endpoint, { ...config, method: "GET" });
   }
@@ -144,7 +143,7 @@ export class HttpClient {
   async post<T>(
     endpoint: string,
     body?: unknown,
-    config?: Omit<RequestConfig, "method" | "body">
+    config?: Omit<RequestConfig, "method" | "body">,
   ): Promise<T> {
     return this.request<T>(endpoint, { ...config, method: "POST", body });
   }
@@ -152,7 +151,7 @@ export class HttpClient {
   async put<T>(
     endpoint: string,
     body?: unknown,
-    config?: Omit<RequestConfig, "method" | "body">
+    config?: Omit<RequestConfig, "method" | "body">,
   ): Promise<T> {
     return this.request<T>(endpoint, { ...config, method: "PUT", body });
   }
@@ -160,14 +159,14 @@ export class HttpClient {
   async patch<T>(
     endpoint: string,
     body?: unknown,
-    config?: Omit<RequestConfig, "method" | "body">
+    config?: Omit<RequestConfig, "method" | "body">,
   ): Promise<T> {
     return this.request<T>(endpoint, { ...config, method: "PATCH", body });
   }
 
   async delete<T>(
     endpoint: string,
-    config?: Omit<RequestConfig, "method" | "body">
+    config?: Omit<RequestConfig, "method" | "body">,
   ): Promise<T> {
     return this.request<T>(endpoint, { ...config, method: "DELETE" });
   }

@@ -3,11 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index,
 } from 'typeorm';
+import { User } from './user.entity';
+import { Conversation } from './conversation.entity';
 
 @Entity()
 @Index(['conversationId', 'sentAt'])
@@ -36,13 +37,19 @@ export class Message {
   @Column({ default: false })
   isDeleted: boolean;
 
-  @ManyToOne('Conversation', (conversation: any) => conversation.messages, {
+  @ManyToOne(
+    'Conversation',
+    (conversation: Conversation) => conversation.messages,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn({ name: 'conversationId' })
+  conversation: Conversation;
+
+  @ManyToOne('User', (user: User) => user.sentMessages, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'conversationId' })
-  conversation: any;
-
-  @ManyToOne('User', (user: any) => user.sentMessages, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'senderId' })
-  sender: any;
+  sender: User;
 }
